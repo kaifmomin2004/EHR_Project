@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* Custom Healthcare-themed styles */
+.healthcare-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Smooth transitions for interactive elements */
+button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Medical-themed color palette */
+.text-medical-primary {
+  color: #2563eb;
+}
+
+.text-medical-secondary {
+  color: #059669;
+}
+
+.text-medical-accent {
+  color: #7c3aed;
+}
+
+.bg-medical-primary {
+  background-color: #2563eb;
+}
+
+.bg-medical-secondary {
+  background-color: #059669;
+}
+
+.bg-medical-accent {
+  background-color: #7c3aed;
+}
+
+/* Form styling */
+.form-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Loading states */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive design helpers */
+@media (max-width: 768px) {
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+  }
+}
+
+/* Healthcare icons styling */
+.healthcare-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Status indicators */
+.status-online {
+  background-color: #10b981;
+}
+
+.status-offline {
+  background-color: #ef4444;
+}
+
+.status-pending {
+  background-color: #f59e0b;
+}
+
+/* Medical record cards */
+.medical-record-card {
+  border-left: 4px solid #2563eb;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.patient-card {
+  border-left: 4px solid #059669;
+  background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.doctor-card {
+  border-left: 4px solid #7c3aed;
+  background: linear-gradient(145deg, #ffffff 0%, #faf5ff 100%);
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid #000;
+  }
+  
+  .button {
+    border: 2px solid currentColor;
+  }
+}
