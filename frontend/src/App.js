@@ -1,6 +1,13 @@
+// ============================================================================
+// IMPORTS AND DEPENDENCIES
+// ============================================================================
+// React core and hooks for state management and side effects
 import React, { useState, useEffect, createContext, useContext } from 'react';
+// React Router for navigation and routing between different pages
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
+// HTTP client for making API calls to the backend
 import axios from 'axios';
+// UI Components from shadcn/ui library for consistent design
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
@@ -9,15 +16,31 @@ import { Badge } from './components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Textarea } from './components/ui/textarea';
+// Lucide React icons for consistent iconography throughout the app
 import { Heart, Users, FileText, User, LogOut, Plus, Search, Calendar, Shield } from 'lucide-react';
+// Custom CSS styles for the application
 import './App.css';
 
+// ============================================================================
+// API CONFIGURATION
+// ============================================================================
+// Backend URL from environment variables (set in .env file)
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// API base endpoint for all backend requests
 const API = `${BACKEND_URL}/api`;
 
-// Auth Context
+// ============================================================================
+// AUTHENTICATION CONTEXT
+// ============================================================================
+// React Context for managing authentication state across the entire application
+// This allows any component to access user data, login/logout functions, etc.
 const AuthContext = createContext();
 
+// ============================================================================
+// AUTHENTICATION HOOK
+// ============================================================================
+// Custom hook that provides access to authentication context
+// Must be used within an AuthProvider component
 const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -26,9 +49,17 @@ const useAuth = () => {
   return context;
 };
 
+// ============================================================================
+// AUTHENTICATION PROVIDER COMPONENT
+// ============================================================================
+// Main component that manages authentication state and provides it to child components
+// Handles user login, logout, token management, and user profile fetching
 const AuthProvider = ({ children }) => {
+  // Current authenticated user data (null if not logged in)
   const [user, setUser] = useState(null);
+  // JWT token stored in localStorage for persistent authentication
   const [token, setToken] = useState(localStorage.getItem('token'));
+  // Loading state while checking authentication status
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,7 +130,12 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// Protected Route Component
+// ============================================================================
+// PROTECTED ROUTE COMPONENT
+// ============================================================================
+// Higher-order component that protects routes requiring authentication
+// Redirects to login if user is not authenticated
+// Can optionally restrict access based on user roles (admin, doctor, patient)
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
@@ -125,7 +161,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
-// Header Component
+// ============================================================================
+// HEADER COMPONENT
+// ============================================================================
+// Top navigation bar that appears on all authenticated pages
+// Shows app logo, user role badge, user name, and logout button
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -160,18 +200,29 @@ const Header = () => {
   );
 };
 
-// Auth Page
+// ============================================================================
+// AUTHENTICATION PAGE COMPONENT
+// ============================================================================
+// Handles both user login and registration in a single component
+// Toggles between login and signup forms
+// Manages form state, validation, and API calls for authentication
 const AuthPage = () => {
+  // Toggle between login and registration modes
   const [isLogin, setIsLogin] = useState(true);
+  // Form data for email, password, full name, and user role
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
     role: 'patient',
   });
+  // Error message display for failed authentication attempts
   const [error, setError] = useState('');
+  // Loading state during authentication API calls
   const [loading, setLoading] = useState(false);
+  // Authentication functions from context
   const { login, register } = useAuth();
+  // Navigation function to redirect after successful auth
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -274,11 +325,19 @@ const AuthPage = () => {
 
 
 
-// Patient Profile Component
+// ============================================================================
+// PATIENT PROFILE COMPONENT
+// ============================================================================
+// Manages patient medical profile information including personal details,
+// medical history, allergies, and current medications
+// Supports both creating new profiles and editing existing ones
 const PatientProfile = () => {
   const { user } = useAuth();
+  // Current patient data from the database
   const [patientData, setPatientData] = useState(null);
+  // Toggle between view and edit modes
   const [isEditing, setIsEditing] = useState(false);
+  // Form data for patient profile fields
   const [formData, setFormData] = useState({
     date_of_birth: '',
     gender: 'male',
@@ -311,7 +370,15 @@ const PatientProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API}/patients`, formData);
+      // Process array fields before sending to API
+      const processedData = {
+        ...formData,
+        allergies: processArrayField('allergies'),
+        chronic_conditions: processArrayField('chronic_conditions'),
+        current_medications: processArrayField('current_medications')
+      };
+      
+      const response = await axios.post(`${API}/patients`, processedData);
       setPatientData(response.data);
       setIsEditing(false);
     } catch (error) {
@@ -320,8 +387,16 @@ const PatientProfile = () => {
   };
 
   const handleArrayChange = (field, value) => {
-    const items = value.split(',').map(item => item.trim()).filter(item => item);
-    setFormData({ ...formData, [field]: items });
+    // Allow commas to be typed, only split when processing
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const processArrayField = (field) => {
+    const value = formData[field];
+    if (typeof value === 'string') {
+      return value.split(',').map(item => item.trim()).filter(item => item);
+    }
+    return value;
   };
 
   if (isEditing) {
@@ -419,7 +494,7 @@ const PatientProfile = () => {
                   <Label htmlFor="allergies">Allergies (comma-separated)</Label>
                   <Input
                     id="allergies"
-                    value={formData.allergies.join(', ')}
+                    value={Array.isArray(formData.allergies) ? formData.allergies.join(', ') : formData.allergies || ''}
                     onChange={(e) => handleArrayChange('allergies', e.target.value)}
                     placeholder="e.g., Penicillin, Peanuts, Latex"
                   />
@@ -429,7 +504,7 @@ const PatientProfile = () => {
                   <Label htmlFor="chronic_conditions">Chronic Conditions (comma-separated)</Label>
                   <Input
                     id="chronic_conditions"
-                    value={formData.chronic_conditions.join(', ')}
+                    value={Array.isArray(formData.chronic_conditions) ? formData.chronic_conditions.join(', ') : formData.chronic_conditions || ''}
                     onChange={(e) => handleArrayChange('chronic_conditions', e.target.value)}
                     placeholder="e.g., Diabetes, Hypertension"
                   />
@@ -439,7 +514,7 @@ const PatientProfile = () => {
                   <Label htmlFor="current_medications">Current Medications (comma-separated)</Label>
                   <Input
                     id="current_medications"
-                    value={formData.current_medications.join(', ')}
+                    value={Array.isArray(formData.current_medications) ? formData.current_medications.join(', ') : formData.current_medications || ''}
                     onChange={(e) => handleArrayChange('current_medications', e.target.value)}
                     placeholder="e.g., Metformin, Lisinopril"
                   />
@@ -577,12 +652,21 @@ const PatientProfile = () => {
   );
 };
 
-// Medical Records Component
+// ============================================================================
+// MEDICAL RECORDS COMPONENT
+// ============================================================================
+// Manages medical records for patients including diagnoses, treatment plans,
+// prescriptions, and follow-up scheduling
+// Doctors and admins can create new records, patients can view their own
 const MedicalRecords = () => {
   const { user } = useAuth();
+  // List of medical records (filtered by user role)
   const [records, setRecords] = useState([]);
+  // List of patients (for doctors/admins to select when creating records)
   const [patients, setPatients] = useState([]);
+  // Toggle for showing/hiding the record creation form
   const [isCreating, setIsCreating] = useState(false);
+  // Form data for creating new medical records
   const [formData, setFormData] = useState({
     patient_id: '',
     chief_complaint: '',
@@ -621,7 +705,13 @@ const MedicalRecords = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/medical-records`, formData);
+      // Process array fields before sending to API
+      const processedData = {
+        ...formData,
+        prescriptions: processArrayField('prescriptions')
+      };
+      
+      await axios.post(`${API}/medical-records`, processedData);
       setIsCreating(false);
       setFormData({
         patient_id: '',
@@ -639,8 +729,8 @@ const MedicalRecords = () => {
   };
 
   const handleArrayChange = (field, value) => {
-    const items = value.split(',').map(item => item.trim()).filter(item => item);
-    setFormData({ ...formData, [field]: items });
+    // Allow commas to be typed, only split when processing
+    setFormData({ ...formData, [field]: value });
   };
 
   if (isCreating && (user.role === 'doctor' || user.role === 'admin')) {
@@ -708,7 +798,7 @@ const MedicalRecords = () => {
                   <Label htmlFor="prescriptions">Prescriptions (comma-separated)</Label>
                   <Input
                     id="prescriptions"
-                    value={formData.prescriptions.join(', ')}
+                    value={Array.isArray(formData.prescriptions) ? formData.prescriptions.join(', ') : formData.prescriptions || ''}
                     onChange={(e) => handleArrayChange('prescriptions', e.target.value)}
                     placeholder="e.g., Amoxicillin 500mg, Ibuprofen 200mg"
                   />
@@ -840,10 +930,17 @@ const MedicalRecords = () => {
   );
 };
 
-// Patients Management Component (for doctors/admins)
+// ============================================================================
+// PATIENTS MANAGEMENT COMPONENT
+// ============================================================================
+// Administrative interface for doctors and admins to view all patient profiles
+// Shows patient information, medical history, and contact details
+// Restricted to healthcare providers only (not accessible to patients)
 const PatientsManagement = () => {
   const { user } = useAuth();
+  // List of all patient profiles in the system
   const [patients, setPatients] = useState([]);
+  // List of all users (to match patient profiles with user accounts)
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -958,10 +1055,17 @@ const PatientsManagement = () => {
   );
 };
 
-// Updated Dashboard with navigation
+// ============================================================================
+// DASHBOARD COMPONENT
+// ============================================================================
+// Main landing page after authentication showing system overview
+// Displays statistics, quick actions, and role-specific information
+// Adapts content based on user role (patient, doctor, or admin)
 const Dashboard = () => {
   const { user } = useAuth();
+  // System statistics (patient count, record count, user count)
   const [stats, setStats] = useState({ patients: 0, records: 0, users: 0 });
+  // Navigation function for quick action buttons
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1181,13 +1285,24 @@ const Dashboard = () => {
   );
 };
 
-// Main App Component
+// ============================================================================
+// MAIN APP COMPONENT
+// ============================================================================
+// Root component that sets up the application structure
+// Wraps everything in authentication context and routing
+// Defines all application routes with appropriate protection levels
 function App() {
   return (
+    // Provide authentication context to all child components
     <AuthProvider>
+      {/* Set up client-side routing */}
       <BrowserRouter>
+        {/* Define application routes */}
         <Routes>
+          {/* Public authentication route */}
           <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Protected dashboard route - requires authentication */}
           <Route
             path="/dashboard"
             element={
@@ -1196,6 +1311,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Patient profile route - restricted to patients only */}
           <Route
             path="/profile"
             element={
@@ -1204,6 +1321,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Medical records route - accessible to all authenticated users */}
           <Route
             path="/medical-records"
             element={
@@ -1212,6 +1331,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Patient management route - restricted to doctors and admins */}
           <Route
             path="/patients"
             element={
@@ -1220,6 +1341,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* Default route - redirects to dashboard */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
