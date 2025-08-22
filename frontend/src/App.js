@@ -733,6 +733,14 @@ const MedicalRecords = () => {
     setFormData({ ...formData, [field]: value });
   };
 
+  const processArrayField = (field) => {
+    const value = formData[field];
+    if (typeof value === 'string') {
+      return value.split(',').map(item => item.trim()).filter(item => item);
+    }
+    return value;
+  };
+
   if (isCreating && (user.role === 'doctor' || user.role === 'admin')) {
     return (
       <div className="min-h-screen bg-gray-50">
